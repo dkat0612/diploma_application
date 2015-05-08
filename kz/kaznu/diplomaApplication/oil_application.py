@@ -15,7 +15,6 @@ LARGE_FONT= ("Constantia", 14)
 NORM_FONT = ("Constantia", 12)
 SMALL_FONT = ("Constantia", 10)
 style.use("ggplot")
-text = ""
 res = {}
 
 def draw_velocity_graph():
@@ -38,9 +37,9 @@ class OilApplication(Tk):
         self.label.grid(row=0, column=0, sticky=E+W+S+N)
         self.frame = Frame(self)
         self.frame.grid(row=1, column=0, sticky=N+S+E+W)
-        self.databox = tkst.ScrolledText(self.frame, background="#eaeaec")
+        self.databox = tkst.ScrolledText(self.frame, background="#eaeaec", width=120)
         self.databox.grid(row=0, column=0, sticky="w")
-        # self.frame.databox.insert(tk.INSERT, text)
+        self.databox.bind("<1>", lambda event, obj=self.databox: OilApplication.load_data(event, obj))
 
         self.menu_bar = Menu(self.frame)
         self.file_menu = Menu(self.menu_bar, tearoff=0, background="#849b87")
@@ -51,6 +50,19 @@ class OilApplication(Tk):
         self.file_menu.add_command(label="Exit", font=NORM_FONT, command=quit)
         self.menu_bar.add_cascade(label="Main", font=SMALL_FONT, menu=self.file_menu)
         Tk.config(self, menu=self.menu_bar)
+
+
+        # self.button_load = ttk.Button(self, text="Load data")
+        # self.button_load.bind("<Button-1>", OilApplication.load_data)
+        # self.button_load.grid(row=0, column=10)
+
+
+    @staticmethod
+    def load_data(event, obj):
+        file = open("data/velocity.csv", "r", encoding="utf-8")
+        text = file.read()
+        file.close()
+        obj.insert(END, text)
 
 
     @staticmethod
@@ -102,9 +114,6 @@ class OilApplication(Tk):
         l = res["l"]
         velocity = vc.Velocity(r, mu_oil, p, l)
         velocity.calculate_and_write()
-        file = open("data/velocity.csv", "r", encoding="utf-8")
-        text = file.read()
-        print(text)
 
 
 app = OilApplication()
