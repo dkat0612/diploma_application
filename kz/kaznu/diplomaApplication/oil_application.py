@@ -17,7 +17,7 @@ style.use("ggplot")
 
 f = Figure()
 a = f.add_subplot(111)
-
+res = {}
 
 def draw_velocity_graph(i):
     pull_data = open("data/velocity.txt", "r").read()
@@ -33,26 +33,20 @@ def draw_velocity_graph(i):
     a.clear()
     a.plot(x_list, y_list)
 
-def animate(i):
-    pullData = open("data/test.txt","r").read()
-    dataList = pullData.split('\n')
-    xList = []
-    yList = []
-    for eachLine in dataList:
-        if len(eachLine) > 1:
-            x, y = eachLine.split(',')
-            xList.append(int(x))
-            yList.append(int(y))
-
-    a.clear()
-    a.plot(xList, yList)
-
 class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Start Page", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
+
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.show()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+        toolbar = NavigationToolbar2TkAgg(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
 class OilApplication(tk.Tk):
@@ -93,33 +87,49 @@ class OilApplication(tk.Tk):
         frame.tkraise()
 
     @staticmethod
-    def data_for_popup(popup, text1, text2, row):
+    def data_entry_for_popup(popup, text1, text2, row):
         label_1 = ttk.Label(popup, text=text1, font=NORM_FONT)
         label_1.grid(row=row, column=0, sticky="w")
-        entry_r = ttk.Entry(popup)
-        entry_r.grid(row=row, column=1, sticky="w")
+        entry = ttk.Entry(popup)
+        entry.grid(row=row, column=1, sticky="w")
         label_2 = ttk.Label(popup, text=text2, font=NORM_FONT)
         label_2.grid(row=row, column=2, sticky="w")
-        return entry_r.get()
+        return entry
+
+    @staticmethod
+    def get_data_from_popup():
+        global res
+        res["r"] = float(res["r"].get())
+        res["mu_oil"] = float(res["mu_oil"].get())
+        res["p"] = float(res["p"].get())
+        res["l"] = float(res["l"].get())
+        print(res["r"]," ",res["mu_oil"]," ",res["p"]," ", res["l"], sep="\n")
 
     @staticmethod
     def velocity():
         popup = tk.Tk()
         popup.wm_title("Velocity")
+        res["r"] = OilApplication.data_entry_for_popup(popup, "Radius [R]: ", "m", 1)
+        res["mu_oil"] = OilApplication.data_entry_for_popup(popup, "Oil viscosity [mu]: ", "Pa * s", 2)
+        res["p"] = OilApplication.data_entry_for_popup(popup, "pressure difference [delta P]: ", "Pa", 3)
+        res["l"] = OilApplication.data_entry_for_popup(popup, "distance [L]: ", "km", 4)
 
-        r = OilApplication.data_for_popup(popup, "Radius [R]: ", "m", 1)
-        mu_oil = OilApplication.data_for_popup(popup, "Oil viscosity [mu]: ", "Pa * s", 2)
-        p = OilApplication.data_for_popup(popup, "pressure difference [delta P]: ", "Pa", 3)
-        l = OilApplication.data_for_popup(popup, "distance [L]: ", "km", 4)
-
-        button_draw = ttk.Button(popup, text="Calculate", command=OilApplication.calculate_velocity(r, mu_oil, p, l))
-        button_draw.grid(row=5, column=0)
-        button_ok = ttk.Button(popup, text="OK", command=popup.destroy)
-        button_ok.grid(row=5, column=1)
+        button_ok = ttk.Button(popup, text="OK", command=OilApplication.get_data_from_popup)
+        button_ok.grid(row=5, column=0)
+        button_clear = ttk.Button(popup, text="CLEAN", command=res.clear)
+        button_clear.grid(row=5, column=2)
+        button_draw = ttk.Button(popup, text="CALCULATE", command=OilApplication.calculate_velocity)
+        button_draw.grid(row=6, column=0)
+        button_close = ttk.Button(popup, text="CLOSE", command=popup.destroy)
+        button_close.grid(row=6, column=2)
         popup.mainloop()
 
     @staticmethod
-    def calculate_velocity(r, mu_oil, p, l):
+    def calculate_velocity():
+        r = res["r"]
+        mu_oil = res["mu_oil"]
+        p = res["p"]
+        l = res["l"]
         velocity = vc.Velocity(r, mu_oil, p, l)
         velocity.calculate_and_write()
 
@@ -129,31 +139,6 @@ ani = animation.FuncAnimation(f, animate, interval=1000)
 app.mainloop()
 
 
-"""
-        label_r = ttk.Label(popup, text="Radious: ", font=NORM_FONT)
-        label_r.grid(row=1, column=0, sticky="w")
-        entry_r = ttk.Entry(popup)
-        entry_r.grid(row=1, column=1, sticky="w")
-        r = entry_r.get()
-
-        label_mu = ttk.Label(popup, text="Oil viscosity: ", font=NORM_FONT)
-        label_mu.grid(row=2, column=0, sticky="w")
-        entry_mu = ttk.Entry(popup)
-        entry_mu.grid(row=2, column=1, sticky="w")
-        mu_oil = entry_mu.get()
-
-        label_p = ttk.Label(popup, text="pressure difference: ", font=NORM_FONT)
-        label_p.grid(row=3, column=0, sticky="w")
-        entry_p = ttk.Entry(popup)
-        entry_p.grid(row=3, column=1, sticky="w")
-        p = entry_p.get()
-
-        label_l = ttk.Label(popup, text="distance [L]: ", font=NORM_FONT)
-        label_l.grid(row=4, column=0, sticky="w")
-        entry_l = ttk.Entry(popup)
-        entry_l.grid(row=4, column=1, sticky="w")
-        l = entry_l.get()
-"""
 
 
 
