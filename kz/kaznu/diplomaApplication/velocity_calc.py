@@ -29,7 +29,7 @@ class Velocity:
         eps = 0.001
         step = -0.001
 
-        file = open("data/velocity.txt", "w", encoding='utf-8')
+        file = open("data/velocity.csv", "w", encoding='utf-8')
         header = "r[m],sigma_0.05,sigma_0.1,sigma_0.15,sigma_0.2,sigma_0.25\n"
         file.write(header)
 

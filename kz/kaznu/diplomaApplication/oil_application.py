@@ -1,98 +1,65 @@
 __author__ = 'dk@t'
 
-import matplotlib
-matplotlib.use("TkAgg")
+from tkinter import *
 import tkinter as tk
 from matplotlib import style
 from tkinter import ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
-import matplotlib.animation as animation
 import kz.kaznu.diplomaApplication.velocity_calc as vc
+from matplotlib import pyplot as plt
+from pandas import DataFrame as df
+import pandas as pd
+import tkinter.scrolledtext as tkst
+import sys
 
-LARGE_FONT= ("Verdana", 12)
-NORM_FONT = ("Helvetica", 10)
-SMALL_FONT = ("Helvetica", 8)
+LARGE_FONT= ("Constantia", 14)
+NORM_FONT = ("Constantia", 12)
+SMALL_FONT = ("Constantia", 10)
 style.use("ggplot")
-
-f = Figure()
-a = f.add_subplot(111)
+text = ""
 res = {}
 
-def draw_velocity_graph(i):
-    pull_data = open("data/velocity.txt", "r").read()
-    data_list = pull_data.split('\n')
-    x_list = []
-    y_list = []
-    for eachLine in data_list:
-        if len(eachLine) > 1:
-            x, y = eachLine.split(',')
-            x_list.append(int(x))
-            y_list.append(int(y))
-
-    a.clear()
-    a.plot(x_list, y_list)
-
-class StartPage(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Start Page", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
-
-        canvas = FigureCanvasTkAgg(f, self)
-        canvas.show()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        toolbar = NavigationToolbar2TkAgg(canvas, self)
-        toolbar.update()
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+def draw_velocity_graph():
+    df.A = pd.read_csv('data/velocity.csv', index_col='r[m]')
+    ax = df.A.plot()
+    ax.set_ylabel("velocity [m/s]")
+    plt.title("Dependence of the radial flow velocity profiles on the water layer thickness sigma")
+    plt.show()
 
 
-class OilApplication(tk.Tk):
+class OilApplication(Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
+        global text
+        Tk.__init__(self)
+        self.title("Hydrotransport Analysis")
+        self.iconbitmap(default="icons/oil.ico")
 
-        tk.Tk.__init__(self, *args, **kwargs)
+        self.label = Label(self, text="Hydrotransport analysis application", font=LARGE_FONT, background="#cde2bd")
+        self.label.grid(row=0, column=0, sticky=E+W+S+N)
+        self.frame = Frame(self)
+        self.frame.grid(row=1, column=0, sticky=N+S+E+W)
+        self.databox = tkst.ScrolledText(self.frame, background="#eaeaec")
+        self.databox.grid(row=0, column=0, sticky="w")
+        # self.frame.databox.insert(tk.INSERT, text)
 
-        tk.Tk.iconbitmap(self, default="icons/oil.ico")
-        tk.Tk.wm_title(self, "Hydrotransport Analysis")
+        self.menu_bar = Menu(self.frame)
+        self.file_menu = Menu(self.menu_bar, tearoff=0, background="#849b87")
+        self.file_menu.add_command(label="velocity", font=NORM_FONT, command=lambda: self.velocity())
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="liquid flow rate", font=NORM_FONT, command=lambda: self.liquid_flow_rate())
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Exit", font=NORM_FONT, command=quit)
+        self.menu_bar.add_cascade(label="Main", font=SMALL_FONT, menu=self.file_menu)
+        Tk.config(self, menu=self.menu_bar)
 
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
-        menu_bar = tk.Menu(container)
-        file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="velocity", font=LARGE_FONT, command=lambda: self.velocity())
-        file_menu.add_separator()
-        file_menu.add_command(label="liquid flow rate", font=LARGE_FONT, command=lambda: self.liquid_flow_rate())
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", font=LARGE_FONT, command=quit)
-        menu_bar.add_cascade(label="Main", font=LARGE_FONT, menu=file_menu)
-
-        tk.Tk.config(self, menu=menu_bar)
-
-        self.frames = {}
-
-        frame = StartPage(container, self)
-
-        self.frames[StartPage] = frame
-
-        self.show_frame(StartPage)
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
 
     @staticmethod
     def data_entry_for_popup(popup, text1, text2, row):
-        label_1 = ttk.Label(popup, text=text1, font=NORM_FONT)
+        label_1 = ttk.Label(popup, text=text1, font=NORM_FONT, background="#cde2bd")
         label_1.grid(row=row, column=0, sticky="w")
         entry = ttk.Entry(popup)
         entry.grid(row=row, column=1, sticky="w")
-        label_2 = ttk.Label(popup, text=text2, font=NORM_FONT)
+        label_2 = ttk.Label(popup, text=text2, font=NORM_FONT, background="#cde2bd")
         label_2.grid(row=row, column=2, sticky="w")
         return entry
 
@@ -105,10 +72,12 @@ class OilApplication(tk.Tk):
         res["l"] = float(res["l"].get())
         print(res["r"]," ",res["mu_oil"]," ",res["p"]," ", res["l"], sep="\n")
 
+
     @staticmethod
     def velocity():
         popup = tk.Tk()
         popup.wm_title("Velocity")
+        Tk.config(popup, bg="#cde2bd")
         res["r"] = OilApplication.data_entry_for_popup(popup, "Radius [R]: ", "m", 1)
         res["mu_oil"] = OilApplication.data_entry_for_popup(popup, "Oil viscosity [mu]: ", "Pa * s", 2)
         res["p"] = OilApplication.data_entry_for_popup(popup, "pressure difference [delta P]: ", "Pa", 3)
@@ -116,8 +85,8 @@ class OilApplication(tk.Tk):
 
         button_ok = ttk.Button(popup, text="OK", command=OilApplication.get_data_from_popup)
         button_ok.grid(row=5, column=0)
-        button_clear = ttk.Button(popup, text="CLEAN", command=res.clear)
-        button_clear.grid(row=5, column=2)
+        button_draw = ttk.Button(popup, text="DRAW", command=draw_velocity_graph)
+        button_draw.grid(row=5, column=2)
         button_draw = ttk.Button(popup, text="CALCULATE", command=OilApplication.calculate_velocity)
         button_draw.grid(row=6, column=0)
         button_close = ttk.Button(popup, text="CLOSE", command=popup.destroy)
@@ -126,16 +95,19 @@ class OilApplication(tk.Tk):
 
     @staticmethod
     def calculate_velocity():
+        global text
         r = res["r"]
         mu_oil = res["mu_oil"]
         p = res["p"]
         l = res["l"]
         velocity = vc.Velocity(r, mu_oil, p, l)
         velocity.calculate_and_write()
+        file = open("data/velocity.csv", "r", encoding="utf-8")
+        text = file.read()
+        print(text)
+
 
 app = OilApplication()
-app.geometry("1280x720")
-ani = animation.FuncAnimation(f, animate, interval=1000)
 app.mainloop()
 
 
