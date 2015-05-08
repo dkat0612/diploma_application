@@ -15,7 +15,7 @@ class Velocity:
         self.l = l
         self.delta_p = delta_p
 
-    def __calculate_velocity(self, a, r):
+    def calculate_velocity(self, a, r):
         if r <= a:
             velocity = -(self.delta_p / (4 * self.l)) * ((r * r - a * a) / self.mu_oil + (a * a - self.r * self.r)
                                                          / self.mu_water)
@@ -41,11 +41,11 @@ class Velocity:
                 a = self.r - sigma
                 velocity = self.calculate_velocity(a, r)
                 data += "," + str(velocity)
-                data += "\n"
-                file.write(data)
-                r += step
+            data += "\n"
+            file.write(data)
+            r += step
 
-            file.close()
+        file.close()
 
 
 if __name__ == "__main__":
