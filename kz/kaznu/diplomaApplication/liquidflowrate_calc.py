@@ -4,20 +4,16 @@ import math
 
 class LiquidFlowRate:
     mu_water = 0.001
-    d = 1.0
     delta_p = 1000.0
     l = 30000.0
     mu_oil = 0.025
     sigma = 0
     step = 0.001
-    r = d / 2
-    optimal_x = []
-    optimal_y = []
+    r = 0.5
 
-    def __init__(self, d, mu_oil, delta_p, l):
+    def __init__(self, r, mu_oil, delta_p, l):
         self.delta_p = delta_p
-        self.d = d
-        self.r = d / 2.0
+        self.r = r
         self.mu_oil = mu_oil
         self.l = l
 
@@ -39,7 +35,7 @@ class LiquidFlowRate:
         sigma = 0
         step = 0.001
 
-        file = open("oil_stat.csv", "w", encoding='utf-8')
+        file = open("data/liquidflowrate.csv", "w", encoding='utf-8')
         header = "sigma,q,q_water,q_oil\n"
         file.write(header)
 
@@ -57,8 +53,13 @@ class LiquidFlowRate:
         a = self.r / math.pow(2.0 - self.mu_water / self.mu_oil, 0.5)
         q_w = self.q_water(a)
         q_o = self.q_oil(a)
-        self.optimal_x = [self.r - a, self.r - a, self.r - a]
-        self.optimal_y = [q_pure_oil, q_w, q_o]
+
+        file = open("data/optimal_values.csv", "w", encoding='utf-8')
+        x = str(self.r - a) + "," + str(self.r - a) + "," + str(self.r - a)+"\n"
+        y = str(q_pure_oil) + "," + str(q_w) + "," + str(q_o)+"\n"
+        file.write(x)
+        file.write(y)
+        file.close()
 
 
 if __name__ == '__main__':
